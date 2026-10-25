@@ -2,6 +2,7 @@ import allure
 import pytest
 
 from pages.board_page import BoardPage
+from pages.projects_page import ProjectsPage
 
 
 @allure.feature("UI: Исполнители")
@@ -18,6 +19,7 @@ class TestAssigneeAttachSticker:
     def test_assignee_via_attach(
             self,
             authorized_driver,
+            created_project,
             created_task: str,
             created_employee: str):
         """
@@ -30,6 +32,10 @@ class TestAssigneeAttachSticker:
         assignee_name = created_employee  # email из фикстуры
         page = BoardPage(authorized_driver)
         role = "Наблюдатель"
+
+        # Переходим на доску НОВОГО проекта
+        projects_page = ProjectsPage(authorized_driver)
+        projects_page.open(url=created_project["url"])
 
         with allure.step(f"Шаг 1. Навести курсор на карточку '{task_name}'"):
             page.hover_task_card(task_name)
@@ -74,6 +80,9 @@ class TestAssigneeAttachSticker:
 
         with allure.step("Шаг 9. Проверить, что "
                          "иконка сотрудника добавилась в верхнюю панель"):
+            # Ждем, пока иконок станет на 1 больше (до 10 секунд)
+            page.wait_avatars(count_before + 1)
+            # После ожидания просто проверяем фактическое количество
             count_after = page.get_top_panel_users_count()
             assert count_after == count_before + 1, (
                 f"Ожидалось {count_before + 1} иконок в верхней панели, "

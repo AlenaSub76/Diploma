@@ -361,6 +361,14 @@ class BoardPage(BasePage):
         """Возвращает количество аватарок в верхней панели."""
         return len(self.driver.find_elements(*self.TOP_PANEL_USERS))
 
+    def wait_avatars(self, expected_count: int, timeout: int = 10) -> None:
+        """
+        Ждет, пока в верхней панели не станет ровно expected_count иконок.
+        Использует стандартный WebDriverWait с кастомным условием.
+        """
+        self.wait.until(lambda _: len(self.driver.find_elements(
+            *self.TOP_PANEL_USERS)) == expected_count)
+
     # ============== УДАЛЕНИЕ ЗАДАЧИ ==================
     def delete_task(self, task_name: str) -> "BoardPage":
         """

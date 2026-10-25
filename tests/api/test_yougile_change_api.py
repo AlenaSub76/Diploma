@@ -17,7 +17,7 @@ class TestChangeProject:
         Меняем название на уникальное и проверяем, что GET возвращает новое."""
 
         with allure.step("Шаг 1. Извлечь ID из фикстуры"):
-            project_id = created_project
+            project_id = created_project["id"]
 
         with allure.step("Шаг 2. Изменить название проекта"):
             new_title = uuid.uuid4().hex[:3]
@@ -49,7 +49,7 @@ class TestChangeProject:
         где название передается в числовом формате (int)"""
 
         with allure.step("Шаг 1. Извлечь ID из фикстуры"):
-            project_id = created_project
+            project_id = created_project["id"]
 
         with allure.step(
                 "Шаг 2. Получить проект и сохранить валидное название"):

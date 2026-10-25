@@ -14,14 +14,16 @@ class TestCreateTask:
 
     @allure.title("ТК-101. Успешное создание задачи на канбан-доске")
     @allure.severity(allure.severity_level.CRITICAL)
-    def test_create_task_positive(self, authorized_driver):
+    def test_create_task_positive(self, authorized_driver, created_project):
         """
         Создаём задачу через UI:
         «Добавить задачу» → ввести имя → клик по пустому месту.
         Проверяем появление карточки. Постусловие — удалить задачу.
         """
         task_name = f"task-{uuid.uuid4().hex[:6]}"
-        page = ProjectsPage(authorized_driver).open()
+        # Переходим на доску НОВОГО проекта
+        page = ProjectsPage(authorized_driver)
+        page.open(url=created_project["url"])
 
         with allure.step("1. Нажать 'Добавить задачу'"):
             page.click_add_task()

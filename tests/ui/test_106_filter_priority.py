@@ -12,7 +12,8 @@ class TestFilterPriority:
     """ТК-106. Фильтрация списка задач по приоритету"""
     @allure.title("ТК-106: Фильтрация списка задач по приоритету '{priority}'")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_filter_by_priority(self, authorized_driver, created_task):
+    def test_filter_by_priority(
+            self, authorized_driver, created_project, created_task):
         board = BoardPage(authorized_driver)
         projects = ProjectsPage(authorized_driver)
         with allure.step("Предусловие: развернуть страницу во все окно"):
@@ -26,9 +27,8 @@ class TestFilterPriority:
             task2_name = f"auto-{uuid.uuid4().hex[:6]}"
             task3_name = f"auto-{uuid.uuid4().hex[:6]}"
 
-            # Возвращаемся на доску,
-            # так как фикстура created_task оставляет нас там
-            projects.open()
+            # Возвращаемся на доску НОВОГО проекта
+            projects.open(url=created_project["url"])
 
             # Создаем вторую задачу
             projects.create_task(task2_name)

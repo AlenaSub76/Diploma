@@ -16,7 +16,7 @@ class TestGetProject:
         Проверяем, что GET возвращает 200 и совпадающий id.
         """
         with allure.step("Шаг 1. Извлечь ID из фикстуры"):
-            project_id = created_project
+            project_id = created_project["id"]
 
         with allure.step("Шаг 2. Получить проект по ID"):
             response = api_client.get_project(project_id)

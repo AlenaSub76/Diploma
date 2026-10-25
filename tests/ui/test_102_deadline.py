@@ -2,6 +2,7 @@ import allure
 import pytest
 
 from pages.board_page import BoardPage
+from pages.projects_page import ProjectsPage
 
 
 @allure.feature("UI: Стикеры")
@@ -12,15 +13,19 @@ class TestDeadline:
 
     @allure.title("ТК-102. Установка срока выполнения (дедлайна) для задачи")
     @allure.severity(allure.severity_level.NORMAL)
-    def test_set_deadline(self, authorized_driver, created_task: str):
+    def test_set_deadline(
+            self, authorized_driver, created_project, created_task: str):
         """
-        Задача создаётся фикстурой created_task
+        Задача создаётся фикстурой created_task через API
         (setup + teardown автоматически).
         Устанавливаем дедлайн 31.10.2026 17:00
         через стикер и проверяем отображение.
         """
         task_name = created_task
         page = BoardPage(authorized_driver)
+        # Переходим на доску НОВОГО проекта
+        projects_page = ProjectsPage(authorized_driver)
+        projects_page.open(url=created_project["url"])
 
         with allure.step(f"1. Навести курсор на карточку '{task_name}'"):
             page.hover_task_card(task_name)

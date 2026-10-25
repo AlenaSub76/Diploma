@@ -32,7 +32,7 @@ def api_client():
 def created_project(api_client: YouGileAPI):
     """
     Создаёт проект через API и гарантированно удаляет его после теста.
-    Возвращает project_id.
+    Возвращает project_id и url проекта.
     Зачем: не копипастить «создать → достать id → удалить» в каждом тесте.
     """
     response = api_client.create_project()
@@ -40,8 +40,10 @@ def created_project(api_client: YouGileAPI):
         f"Проект не создался: {response.status_code}. Текст: {response.text}"
     )
     project_id: str = response.json()["id"]
+    # Формируем URL для UI-тестов
+    project_url = f"{config.base_url}team/{project_id}"
 
-    yield project_id
+    yield {"id": project_id, "url": project_url}  # <--- Возвращаем словарь
 
     response = api_client.delete_project(project_id)
     assert response.status_code == 200, (
@@ -101,14 +103,17 @@ def authorized_driver(driver):
 
 
 @pytest.fixture(scope="function")
-def created_task(authorized_driver):
+def created_task(authorized_driver, created_project):
     """
     Создаёт задачу на канбан-доске через UI и удаляет её после теста.
     """
     task_name = f"auto-{uuid.uuid4().hex[:6]}"
 
     with allure.step(f"Setup: создать задачу '{task_name}'"):
-        projects = ProjectsPage(authorized_driver).open()
+        # Открываем доску НОВОГО проекта
+        projects = ProjectsPage(authorized_driver)
+        projects.open(url=created_project["url"])
+
         projects.create_task(task_name)
         assert projects.is_task_visible(task_name), (
             f"Не удалось создать задачу '{task_name}' в setup"
@@ -117,8 +122,9 @@ def created_task(authorized_driver):
     yield task_name
 
     with allure.step(f"Teardown: удалить задачу '{task_name}'"):
-        # Открываем доску, чтобы гарантированно быть на нужной странице
-        ProjectsPage(authorized_driver).open()
+        # Открываем доску именно того проекта, где создавали задачу
+        ProjectsPage(authorized_driver).open(url=created_project["url"])
+
         # Используем мягкое удаление, которое не падает, если задачи уже нет
         board = BoardPage(authorized_driver)
         try:
@@ -135,7 +141,7 @@ def created_task(authorized_driver):
 
 
 @pytest.fixture(scope="function")
-def created_employee(authorized_driver, created_task):
+def created_employee(authorized_driver, created_project, created_task):
     """
     Создаёт нового сотрудника в компании через CompanyPage (UI).
     Возвращает email приглашённого.
@@ -159,7 +165,8 @@ def created_employee(authorized_driver, created_task):
 
     # ---------- SETUP: вернуться на доску проекта ----------
     with allure.step("Setup: вернуться на доску проекта"):
-        ProjectsPage(authorized_driver).open()
+        # Переходим на доску именно того проекта, где создана задача
+        ProjectsPage(authorized_driver).open(url=created_project["url"])
 
     yield invite_email
 
@@ -179,4 +186,4 @@ def created_employee(authorized_driver, created_task):
 
     # 4. !!! ВОЗВРАЩАЕМСЯ НА ДОСКУ ПРОЕКТА !!!
     # Чтобы следующая фикстура created_task могла удалить задачу
-    ProjectsPage(authorized_driver).open()
+    ProjectsPage(authorized_driver).open(url=created_project["url"])

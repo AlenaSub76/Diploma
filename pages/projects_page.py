@@ -27,9 +27,11 @@ class ProjectsPage(BasePage):
         "[.//*[@data-testid='board-task-title'][.//span[text()='{name}']]]"
     )
 
-    def open(self) -> "ProjectsPage":
-        """Открывает страницу проектов (канбан-доску)."""
-        self.navigate_to(config.project_url)
+    def open(self, url: str | None = None) -> "ProjectsPage":
+        """Открывает страницу проекта. Если url не передан, берет из конфига."""
+        target_url = url if url else config.project_url
+        self.navigate_to(target_url)
+
         return self
 
     def click_add_task(self) -> "ProjectsPage":
